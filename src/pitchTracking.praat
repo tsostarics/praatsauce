@@ -87,8 +87,9 @@ endfor
 ### each row represents a timepoint
 ### second column represents absolute timepoint of the measurement (distance from startTime)
 ### third column represents an f0 measurement
+
 if outputToMatrix
-    Create simple Matrix... PitchAverages timepoints 3 0
+    Create simple Matrix... PitchAverages max(timepoints,1) 3 0
     matrixID = selected("Matrix")
 endif
 ### (end build Matrix object)
@@ -96,6 +97,7 @@ endif
 ###
 ### Fifth, store a measurement at each timepoint.
 ###
+if timepoints > 0
 for i from 1 to timepoints
 
 	if outputToMatrix
@@ -121,6 +123,7 @@ for i from 1 to timepoints
 	pause
 	endif
 endfor
+endif
 ### (end measurement loop)
 
 select 'soundID'

@@ -73,7 +73,7 @@ form Directory and measures
     comment If every n milliseconds, at what msec interval? (e.g. 5, 10...)
 	natural Points 5
     comment Resample to 16 KHZ?
-    boolean resample_to_16k 1    
+    boolean resample_to_16k 1
     comment Spectral measure(s) to take
     boolean pitchTracking 1
     boolean formantMeasures 1
@@ -89,7 +89,7 @@ form Directory and measures
     positive spectrogramWindow 0.005
 
     comment Do you want to load existing Pitch objects, or generate new ones?
-    boolean useExistingPitch 0 
+    boolean useExistingPitch 0
     comment Lower and upper limits to estimated frequency?
     positive f0min 50
     positive f0max 300
@@ -118,8 +118,12 @@ form Directory and measures
     comment bandwidths estimated by the Hawks and Miller formula?
     comment Note: this requires that you selected to run a pitch analysis previously
     boolean useBandwidthFormula 0
+    comment UNIQUE TO THIS VERSION OF THE SCRIPT: Speaker ID (6 chars)
+    text speakerStr 666xxx
 
 endform
+
+echo 'measure' 
 
 ###
 ### Make sure that spectral measures can be calculated if selected, override user settings
@@ -186,7 +190,7 @@ clearinfo
 ## Get directory listing, sort, count
 ###
 
-Create Strings as file list... fileList 'textgriddir$'*.TextGrid
+Create Strings as file list... fileList 'textgriddir$''speakerStr$'_*.TextGrid
 stringsListID = selected("Strings", 1)
 Sort
 numTokens = Get number of strings
@@ -194,7 +198,7 @@ numTokens = Get number of strings
 ###
 ## Build up header variable based on user's choices in the form.
 
-header$ = "Filename"
+header$ = "Speaker,Filename"
 
 ## Add label for each linguistic variable parsed from token names.
 ## In order to be as flexible as possible, this script simply labels
@@ -258,8 +262,12 @@ for currentToken from startToken to numTokens
     ## Retrieve filename of current token
     select stringsListID
     currentTextGridFile$ = Get string... 'currentToken'
+    writeInfoLine: currentTextGridFile$
     basename$ = left$("'currentTextGridFile$'", index("'currentTextGridFile$'", ".") - 1)
     
+    # Cut off the speaker ID before opening the file
+    # basename$ = right$(basename$, length(basename$)-7)
+
     ## Load Sound
     Read from file... 'inputdir$''basename$'.wav
     ## Note that Sound is not resampled b/c later we use To Formant (burg)... 
@@ -397,15 +405,16 @@ for currentToken from startToken to numTokens
         	if fileReadable ("'inputdir$''basename$'.Pitch")
             	Read from file... 'inputdir$''basename$'.Pitch
             else
-            	exit Cannot load Pitch object <'basename$'.Pitch>.
+                select soundID
+                To Pitch (filtered ac)... 0 'f0min' 'f0max' 15 0 0.03 0.09 0.50 0.055 0.35 0.14		
             endif
         # else create
         else
         	select 'soundID'
             #To Pitch... 0 'f0min' 'f0max'
             ## TODO April 2019: add this as a user option
-            To Pitch (ac)... 0 'f0min' 15 0 0.03 0.45 0.01 0.35 0.14 'f0max'
-			## This will result in two Pitch objects, but that's OK (I hope)...
+            To Pitch (filtered ac)... 0 'f0min' 'f0max' 15 0 0.03 0.09 0.50 0.055 0.35 0.14		
+            ## This will result in two Pitch objects, but that's OK (I hope)...
      		# Interpolate
 			## This is maybe nice for some applications but hallucinates f0 in clearly voiceless regions!!
         endif
@@ -420,7 +429,8 @@ for currentToken from startToken to numTokens
             if fileReadable ("'inputdir$''basename$'.Formant")
             	Read from file... 'inputdir$''basename$'.Formant
             else
-            	exit Cannot load Formant object <'basename$'.Formant>.
+            	select 'soundID'
+                To Formant (burg)... timeStep maxNumFormants maxFormantHz windowLength preEmphFrom
             endif
 		## else create 
         else
@@ -598,7 +608,7 @@ for currentToken from startToken to numTokens
             for t from 1 to timepoints
                 # Begin building results string with file and linguistic info.
                 if point_tier == 0
-                    results$ = "'basename$','lingVars$''interval_label$','interval_start:6','interval_end:6','t'"
+                    results$ = "'speakerStr$','basename$','lingVars$''interval_label$','interval_start:6','interval_end:6','t'"
                 else
                     results$ = "'basename$','lingVars$''interval_label$','interval_start:6','interval_end:6','ptimes$''t'"
                 endif

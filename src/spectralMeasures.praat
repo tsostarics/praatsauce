@@ -117,7 +117,7 @@ endfor
 ### columns 28-31 hold HNRs
 ### 
 
-Create simple Matrix... IseliMeasures timepoints 31 0
+Create simple Matrix... IseliMeasures max(timepoints,1) 31 0
 matrixID = selected("Matrix")
 ### (end build matrix object) ###
 
@@ -157,7 +157,7 @@ matrixID = selected("Matrix")
 select 'soundID'
 sample_rate = Get sampling frequency
 ### (end of get sample rate)
-
+if timepoints > 0
 for i from 1 to timepoints
 
 	## Generate a slice around the measurement point ##
@@ -443,3 +443,4 @@ for i from 1 to timepoints
 	plus 'textGridID'
 	plus 'formantID'
 endfor
+endif

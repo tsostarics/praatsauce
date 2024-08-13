@@ -122,7 +122,7 @@ endfor
 ### (relative to distance from startTime)
 ### columns 2-4 hold Fe, F2, F3
 ###
-Create simple Matrix... FormantAverages timepoints 7 0
+Create simple Matrix... FormantAverages max(timepoints,1) 7 0
 matrixID = selected("Matrix")
 ### (end of build Matrix object)
 
@@ -331,6 +331,7 @@ endif
 
 ###
 ### Store measurements for each timepoint
+if timepoints > 0
 for i from 1 to timepoints
 
     select 'formantID'
@@ -392,7 +393,7 @@ for i from 1 to timepoints
     Set value... i 7 'bw3'
 ### End the 'for' loop over timepoints
 endfor
-
+endif
 ###
 ### Smoothing
 ### Not currently implemented
